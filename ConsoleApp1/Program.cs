@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Data.Entity;
 
 namespace ConsoleApp1
 {
@@ -12,12 +13,17 @@ namespace ConsoleApp1
         static void Main(string[] args)
         {
             var motoList = FillData();
+            foreach (var moto in motoList)
+            {
+                moto.Report();
+            }
 
-            //SelectAndFilter(motoList);
+            Console.WriteLine("_____________");
+            SelectAndFilter(motoList);
             //SingleAndFirst(motoList);
             //Sorting(motoList);
             //Aggregation(motoList);
-            TakeSkip(motoList);
+            //TakeSkip(motoList);
             Console.ReadLine();
 
         }
@@ -29,7 +35,7 @@ namespace ConsoleApp1
         {
             Console.WriteLine("low prices");
             Console.WriteLine();
-            var lowPrice = motoList.Where(moto => moto.Price < 2000);
+            var lowPrice = motoList.Where(moto => moto.Price < 2000 && moto.Year>1995);
             foreach (var motorcycle in lowPrice)
             {
                 motorcycle.Report();
@@ -52,6 +58,18 @@ namespace ConsoleApp1
             {
                 Console.WriteLine($"{motorcycle.Name} costs {motorcycle.Price}$");
             }
+            Console.WriteLine("______");
+            Console.WriteLine("From DB:");
+
+            using (var context = new MotoDbContext())
+            {
+                var filteredMotoFromDb = context.Motos.Include(x=>x.Shop).Where(x=>x.Shop.Name== "Av.by");
+                foreach (var moto in filteredMotoFromDb)
+                {
+                    moto.Report();
+                }
+            }
+            
         }
 
         private static void SingleAndFirst(List<Motorcycle> motoList)
@@ -67,7 +85,7 @@ namespace ConsoleApp1
             //moto = motoList.Single(x => x.Make == "Aprillia"); //this one throws exception
             if (moto!=null) moto.Report();
 
-            moto = motoList.SingleOrDefault(x => x.Make == "Minsk");
+            moto = motoList.SingleOrDefault(x => x.Make == "BMW");
             if (moto != null) moto.Report();
 
             //moto = motoList.SingleOrDefault(x => x.Make == "Honda");//this one throws exception - more than one, even SingleOrDefault
@@ -91,7 +109,7 @@ namespace ConsoleApp1
 
         private static void Aggregation(List<Motorcycle> motoList)
         {
-            var aggregate = motoList.Select(x => x.Name).Aggregate((x, y) => x + "," + y);
+            var aggregate = motoList.Select(x => x.Name).Aggregate((x, y) => x + ", " + y);
             Console.WriteLine(aggregate);
             Console.WriteLine(motoList.Sum(x=>x.Price));
             Console.WriteLine(motoList.Where(x=>x.Year>2000).Min(x=>x.Price));
@@ -120,6 +138,7 @@ namespace ConsoleApp1
 
             };
         }
+
 
 
     }
